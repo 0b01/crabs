@@ -40,6 +40,7 @@ impl State for Crabs {
             }
             Ok(())
         })?;
+        self.game.update(window)?;
         Ok(())
     }
 
@@ -99,7 +100,10 @@ impl State for Crabs {
             Event::MouseButton( MouseButton::Left, ButtonState::Pressed) => {
                 dbg!(&window.mouse().pos());
                 let Vector {x, y} = window.mouse().pos();
-                if x > 47.118153 && x < 57.961357 && y > 8.281186 && y < 18.700829 {
+
+
+
+                if x> 21.502869 && x< 30.15857 && y> 8.043931 && y< 18.273455 {
                     // play
                     self.game.play();
                 }
@@ -109,8 +113,6 @@ impl State for Crabs {
                 if x > 74.01056 && x < 83.92191 && y > 7.001367 && y < 18.945835 {
                     self.game.stop();
                 }
-
-
 
                 self.mouse_down = true;
             }

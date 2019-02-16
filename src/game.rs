@@ -24,7 +24,9 @@ pub struct Game {
     crab: Crab,
     buf: String,
     is_debugging: bool,
+    is_playing: bool,
     done: bool,
+    sleep: f64,
 }
 
 impl Game {
@@ -35,8 +37,24 @@ impl Game {
             crab,
             buf,
             is_debugging: false,
+            is_playing: false,
             done: false,
+            sleep: 0.,
         }
+    }
+
+    pub fn update(&mut self, window: &mut Window) -> Result<()>  {
+        let rate = window.update_rate();
+        self.sleep -= rate;
+        if self.sleep < 0. && self.is_playing && !self.done {
+            self.step();
+            self.sleep = 1000.;
+            if self.done {
+                self.is_playing = false;
+                self.is_debugging = false;
+            }
+        }
+        Ok(())
     }
 
     pub fn char(&mut self, c: char) {
@@ -65,8 +83,7 @@ impl Game {
             if prev == "\n" || prev == " " {
                 return;
             }
-
-            // check for max number of line
+            // check number of lines
             if self.buf.lines().collect::<Vec<_>>().len() + 1 > MAX_LINES { return; }
         }
         self.buf = self.buf.replace(CURSOR, &format!("{}{}", c, CURSOR));
@@ -220,9 +237,13 @@ impl Game {
 
     pub fn stop(&mut self) {
         self.is_debugging = false;
+        self.is_playing = false;
         self.crab.reset();
-        self.done = false;
+        self.done = true;
     }
+
     pub fn play(&mut self) {
+        self.is_playing = true;
+        self.done = false;
     }
 }
