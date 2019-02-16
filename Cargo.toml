@@ -1,0 +1,8 @@
+[package]
+name = "crabs"
+version = "0.1.0"
+authors = ["ricky han <github@rickyhan.com>"]
+edition = "2018"
+
+[dependencies]
+quicksilver = "0.3.7"
