@@ -12,13 +12,14 @@ const TEXT_EDITOR_Y: f32 = 34.;
 const LINE_HEIGHT: f32 = 9.;
 const CHAR_WIDTH: f32 = 5.;
 const MAX_LEN: usize = 2 << 3;
+const MAX_LINES: usize = 24;
 
 const REG_Y: f32 = 250.;
 const REG_X: f32 = 14.;
-
 const REG_OFFSET: f32 = 20.;
 
-const MAX_LINES: usize = 24;
+/// continuous stepping delay time in ms
+const PLAY_DELAY: f64 = 100.;
 
 pub struct Game {
     crab: Crab,
@@ -27,6 +28,7 @@ pub struct Game {
     is_playing: bool,
     done: bool,
     sleep: f64,
+    error: Option<usize>,
 }
 
 impl Game {
@@ -40,6 +42,7 @@ impl Game {
             is_playing: false,
             done: false,
             sleep: 0.,
+            error: None,
         }
     }
 
@@ -48,10 +51,9 @@ impl Game {
         self.sleep -= rate;
         if self.sleep < 0. && self.is_playing && !self.done {
             self.step();
-            self.sleep = 1000.;
+            self.sleep = PLAY_DELAY;
             if self.done {
                 self.is_playing = false;
-                self.is_debugging = false;
             }
         }
         Ok(())
@@ -112,22 +114,37 @@ impl Game {
         self.draw_text(window, sprites)?;
         self.draw_registers(window, sprites)?;
         self.draw_debugger(window, sprites)?;
+        self.draw_error(window, sprites)?;
         Ok(())
     }
 
+    fn draw_error(&self, window: &mut Window, sprites: &mut Asset<Sprites>) -> Result<()> {
+        if let Some(line) = self.error {
+            window.draw_ex(&
+                Rectangle::new(
+                    (TEXT_EDITOR_X - 8., TEXT_EDITOR_Y + LINE_HEIGHT * line as f32 - LINE_HEIGHT * 0.5),
+                    (100.-7., LINE_HEIGHT)
+                ),
+                Col(Color{r:0./255., g:0./255., b:255./255., a:255./255.}),
+                Transform::scale(Vector::new(1., 1.)),
+                1,
+            );
+        }
+        Ok(())
+    }
     fn draw_debugger(&self, window: &mut Window, sprites: &mut Asset<Sprites>) -> Result<()> {
         if !self.is_debugging{ return Ok(()) }
         let ip = self.crab.ip;
         let loc = (TEXT_EDITOR_X - 8., TEXT_EDITOR_Y + LINE_HEIGHT * ip as f32);
         sprites.execute(|spr|{
 
-            // let pointer = spr.get_img("pointer").unwrap();
-            // window.draw_ex(&
-            //     pointer.area().with_center(loc),
-            //     Img(&pointer),
-            //     Transform::scale(Vector::new(1., 1.)),
-            //     2,
-            // );
+            let pointer = spr.get_img("pointer").unwrap();
+            window.draw_ex(&
+                pointer.area().with_center(loc),
+                Img(&pointer),
+                Transform::scale(Vector::new(1., 1.)),
+                2,
+            );
 
             let col = if self.done {
                 Color{r:22./255., g:94./255., b:0./255., a:255./255.}
@@ -219,13 +236,18 @@ impl Game {
 impl Game {
     fn load_code(&mut self) {
         let code = self.buf.replace(CURSOR, "");
-        self.crab.load_code(&code);
+        if let Err(line) = self.crab.load_code(&code) {
+            self.error = Some(line);
+        }
     }
 
     pub fn step(&mut self) {
         if !self.is_debugging {
             self.is_debugging = true;
             self.load_code();
+            return;
+        }
+        if self.error.is_some()  {
             return;
         }
         self.crab.motor();
@@ -239,6 +261,7 @@ impl Game {
         self.is_debugging = false;
         self.is_playing = false;
         self.crab.reset();
+        self.error = None;
         self.done = true;
     }
 

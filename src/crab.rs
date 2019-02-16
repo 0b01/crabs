@@ -32,7 +32,7 @@ impl Crab {
         }
     }
 
-    pub fn load_code(&mut self, code: &str) -> Result<(), String> {
+    pub fn load_code(&mut self, code: &str) -> Result<(), usize> {
         let lines: Vec<_> = code.lines()
             .filter_map(|line|{
                 let trimmed = line.trim();
@@ -45,7 +45,7 @@ impl Crab {
             .map(|i|i.parse::<OpCode>().ok())
             .collect();
         if !lines.iter().all(|i|i.is_some()) {
-            return Err("Cannot parse your code!!".to_owned());
+            return Err(lines.iter().position(|i|i.is_none()).unwrap());
         }
         let lines = lines.into_iter().map(|i|i.unwrap()).collect();
         self.code = lines;
@@ -305,7 +305,7 @@ impl FromStr for OpCode {
     type Err = String;
 
     fn from_str(line: &str) -> Result<Self, Self::Err> {
-        let tokens: Vec<_> = line.split(" ").collect();
+        let tokens: Vec<_> = line.split_whitespace().collect();
         let code = tokens.get(0).unwrap();
         let op1 = tokens.get(1).ok_or("does not exist".to_owned());
         let op2 = tokens.get(2).ok_or("does not exist".to_owned());
