@@ -51,12 +51,11 @@ impl State for Crabs {
 
         let loc = (self.pos_x, self.pos_y);
 
-        // TODO: remove me
         self.sprites.execute(|spr|{
-            let crab = spr.get_img("crab").unwrap();
+            let anim_frame = spr.get_anim("crab-rest").unwrap().current_frame();
             window.draw(
-                &crab.area().with_center(loc),
-                Img(&crab)
+                &anim_frame.area().with_center(loc),
+                Img(anim_frame)
             );
             Ok(())
         })?;
@@ -141,6 +140,23 @@ impl Crabs {
         self.sprites.execute(|spr| {
             let anim = spr.get_anim("bg").unwrap();
             anim.draw(window, 0., 0., 1.);
+
+            let crab = spr.get_anim("crab-right").unwrap().current_frame();
+            window.draw_ex(&
+                crab.area().with_center((115.17666, 168.09296)),
+                Img(&crab),
+                Transform::scale(Vector::new(1, 1)),
+                2,
+            );
+
+            let crab = spr.get_anim("crab-right").unwrap().current_frame();
+            window.draw_ex(&
+                crab.area().with_center((138.5878, 132.22208)),
+                Img(&crab),
+                Transform::scale(Vector::new(1, 1)),
+                2,
+            );
+
             Ok(())
         })?;
 

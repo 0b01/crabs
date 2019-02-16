@@ -172,7 +172,7 @@ impl Game {
             let loc = (REG_X + REG_OFFSET * i as f32, REG_Y);
             let val = self.crab.get_reg(*reg);
             sprites.execute(|spr|{
-                let img = spr.render_str(&format!("{:?}{}", reg, val));
+                let img = spr.render_str(&format!("{:?}:{}", reg, val));
                 window.draw_ex(&
                     img.area().with_center(loc),
                     Img(&img),
@@ -191,12 +191,19 @@ impl Game {
             ORIGIN_Y + self.crab.pos_y as f32 * TILE_Y,
         );
         let crab_normal = self.crab.get_reg(Register::R);
+        let anim_name = match crab_normal {
+            0 => "crab-rest",
+            1 => "crab-left",
+            2 => "crab-up",
+            3 => "crab-right",
+            _ => panic!("impossible"),
+        };
         sprites.execute(|spr|{
-            let crab = spr.get_img("crab").unwrap();
+            let crab = spr.get_anim(anim_name).unwrap().current_frame();
             window.draw_ex(&
                 crab.area().with_center(crabloc),
                 Img(&crab),
-                Transform::scale(Vector::new(1, 1)) * Transform::rotate(90 * crab_normal),
+                Transform::scale(Vector::new(1, 1)),//* Transform::rotate(90 * crab_normal),
                 2,
             );
             Ok(())

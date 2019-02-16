@@ -64,6 +64,11 @@ impl Animation {
         nth
     }
 
+    pub fn current_frame(&self) -> &Image {
+        let src = &self.imgs[self.nth()];
+        src
+    }
+
     pub fn draw(&self, window: &mut Window, pos_x: f32, pos_y: f32, scale: f32) {
         if self.played {
             return;

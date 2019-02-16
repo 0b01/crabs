@@ -20,20 +20,26 @@ impl Sprites {
                 )
         });
 
-        let anims: Vec<&str> = vec![ "bg" ];
+        let anims: Vec<(&str, _)> = vec![
+            ("bg", (480, 270, 10.)),
+            ("crab-rest",(36, 27, 1.)),
+            ("crab-left",(36, 27, 1.)),
+            ("crab-up",(36, 27, 1.)),
+            ("crab-right",(36, 27, 1.)),
+        ];
 
-        let anim_futs = anims.into_iter().map(move |src| {
+        let anim_futs = anims.into_iter().map(move |(src, dims)| {
             load_file(src.to_owned() + ".png")
                 .map(move |data|
-                    (src, Image::from_bytes(data.as_slice()).unwrap())
+                    (src, (dims, Image::from_bytes(data.as_slice()).unwrap()))
                 )
         });
 
         let fut_anim = join_all(anim_futs)
             .map(|vec| {
                 let mut anims = HashMap::new();
-                for (src, img) in vec.into_iter() {
-                    let anim = Animation::from_image(img, 480, 270, 10.1);
+                for (src, ((frame_w, frame_h, dur), img)) in vec.into_iter() {
+                    let anim = Animation::from_image(img, frame_w, frame_h, dur);
                     anims.insert(src.to_string(), anim);
                 }
                 anims
