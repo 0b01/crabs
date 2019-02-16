@@ -190,9 +190,11 @@ impl Game {
             self.load_code();
             return;
         }
+        self.crab.motor();
         if let Err(_) = self.crab.step() {
             self.done = true;
         }
+        self.crab.sensor();
     }
 
     pub fn stop(&mut self) {

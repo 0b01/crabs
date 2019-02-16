@@ -13,6 +13,7 @@ struct Crabs {
     mouse_down: bool,
     pos_x: f32,
     pos_y: f32,
+    ctrl: bool,
 }
 
 impl State for Crabs {
@@ -26,6 +27,7 @@ impl State for Crabs {
             mouse_down: false,
             pos_x: 0.,
             pos_y: 0.,
+            ctrl: false,
         })
     }
 
@@ -71,12 +73,23 @@ impl State for Crabs {
             }
 
 
-            Event::Typed(c) => { self.game.char(char::to_ascii_uppercase(c)); }
-            Event::Key(Key::Return, ButtonState::Pressed) => { self.game.char('\n') },
+            Event::Typed(c) => {
+                if self.ctrl && *c == 'c' {
+                    self.game.stop(); return Ok(());
+                }
+                self.game.char(char::to_ascii_uppercase(c));
+            }
+            Event::Key(Key::Return, ButtonState::Pressed) => {
+                if self.ctrl { self.game.step(); return Ok(()); }
+                self.game.char('\n')
+            },
             Event::Key(Key::Space, ButtonState::Pressed) => { self.game.char(' ') },
             Event::Key(Key::Back, ButtonState::Pressed) => { self.game.char('\0') },
             Event::Key(Key::Colon, ButtonState::Pressed) => { self.game.char(':') },
             Event::Key(Key::Subtract, ButtonState::Pressed) => { self.game.char('-') },
+            Event::Key(Key::LControl, ButtonState::Pressed) | Event::Key(Key::RControl, ButtonState::Pressed) => {
+                self.ctrl = true;
+            },
             Event::Key(k, ButtonState::Pressed) => { dbg!(k); },
 
             Event::MouseButton( MouseButton::Left, ButtonState::Pressed) => {

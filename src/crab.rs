@@ -1,5 +1,4 @@
-/// mov 3 left
-/// sub left 1
+use crate::game::Game;
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -22,7 +21,6 @@ impl Crab {
         registers.insert(Register::H, 0);
         registers.insert(Register::V, 0);
         registers.insert(Register::R, 0);
-
         Self {
             registers,
             ip: 0,
@@ -51,6 +49,41 @@ impl Crab {
         let lines = lines.into_iter().map(|i|i.unwrap()).collect();
         self.code = lines;
         Ok(())
+    }
+
+    /// returns the unit vector in the direction of freedom
+    ///
+    /// Note: crabs walk sideways so the degree of freedom = 1 and the
+    /// vector corresponds to the complement axis of where the crab
+    /// is actually facing
+    ///
+    ///
+    /// 0 v : the crab's right is (x, y) = (-1, 0)
+    /// 1 < : the crab's right is (x, y) = (0, -1)
+    /// 2 ^ : the crab's right is (x, y) = (1, 0)
+    /// 3 > : the crab's right is (x, y) = (0, 1)
+    pub fn dir(&self) -> (i32, i32) {
+        match self.get_reg(Register::R) {
+            0 => (-1, 0),
+            1 => (0, -1),
+            2 => (1, 0),
+            3 => (0, 1),
+            _ => panic!("impossible.")
+        }
+
+    }
+
+    pub fn motor(&mut self) {
+        if self.stopped() { return; }
+        let m = self.get_reg(Register::M);
+        let to_move = m.signum();
+        let (x, y) = self.dir();
+        self.pos_x += x * to_move;
+        self.pos_y += y * to_move;
+    }
+
+    pub fn sensor(&mut self/*, game: &Game*/) {
+        // ...
     }
 
     fn find_label(&self, to_find: &str) -> Option<usize> {
@@ -99,8 +132,12 @@ impl Crab {
         Ok(())
     }
 
+    pub fn stopped(&self) -> bool {
+        self.ip >= self.code.len()
+    }
+
     pub fn step(&mut self) -> Result<(), String> {
-        if self.ip >= self.code.len() {
+        if self.stopped() {
             return Err("Runtime error: instruction pointer OOB".to_owned())
         }
 
