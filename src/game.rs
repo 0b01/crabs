@@ -18,6 +18,8 @@ const REG_X: f32 = 14.;
 
 const REG_OFFSET: f32 = 20.;
 
+const MAX_LINES: usize = 24;
+
 pub struct Game {
     crab: Crab,
     buf: String,
@@ -39,6 +41,7 @@ impl Game {
 
     pub fn char(&mut self, c: char) {
         if self.is_debugging { return }
+        // backspace
         if c == '\0' {
             let idx = self.buf.find(CURSOR).unwrap();
             if idx != 0 {
@@ -46,10 +49,25 @@ impl Game {
             }
             return;
         }
+        // cannot be greater than max line length
         if let Some(len) = self.buf.lines().last().map(|i|i.len()) {
             if len + 1 == MAX_LEN {
                 return;
             }
+        }
+        if c == '\n' {
+            // disallow double newline
+            let idx = self.buf.find(CURSOR).unwrap();
+            if idx == 0 {
+                return;
+            }
+            let prev = &self.buf[(idx-1)..idx];
+            if prev == "\n" || prev == " " {
+                return;
+            }
+
+            // check for max number of line
+            if self.buf.lines().collect::<Vec<_>>().len() + 1 > MAX_LINES { return; }
         }
         self.buf = self.buf.replace(CURSOR, &format!("{}{}", c, CURSOR));
     }

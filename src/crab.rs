@@ -2,6 +2,9 @@ use crate::game::Game;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+const INIT_X: i32 = 3;
+const INIT_Y: i32 = 3;
+
 #[derive(Debug)]
 pub struct Crab {
     pub registers: HashMap<Register, i32>,
@@ -10,7 +13,6 @@ pub struct Crab {
     pub code: Vec<OpCode>,
     pub pos_y: i32,
     pub pos_x: i32,
-    pub dir: u32,
 }
 
 impl Crab {
@@ -25,9 +27,8 @@ impl Crab {
             registers,
             ip: 0,
             code: vec![],
-            pos_x: 3,
-            pos_y: 3,
-            dir: 0,
+            pos_x: INIT_X,
+            pos_y: INIT_Y,
         }
     }
 
@@ -113,6 +114,8 @@ impl Crab {
         for i in self.registers.values_mut() {
             *i = 0;
         }
+        self.pos_x = INIT_X;
+        self.pos_y = INIT_Y;
         self.ip = 0;
     }
 
@@ -260,8 +263,8 @@ impl Crab {
                 }
             }
             RCW => {
-                self.dir = (self.dir + 1) % 4;
-                *self.registers.get_mut(&Register::R).unwrap() = self.dir as i32;
+                let dir = self.registers.get_mut(&Register::R).unwrap();
+                *dir = (*dir + 1) % 4;
                 self.ip += 1;
             }
         };
