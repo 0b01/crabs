@@ -261,6 +261,8 @@ impl Crab {
             }
             RCW => {
                 self.dir = (self.dir + 1) % 4;
+                *self.registers.get_mut(&Register::R).unwrap() = self.dir as i32;
+                self.ip += 1;
             }
         };
         Ok(())

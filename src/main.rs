@@ -73,14 +73,18 @@ impl State for Crabs {
             }
 
 
-            Event::Typed(c) => {
-                if self.ctrl && *c == 'c' {
-                    self.game.stop(); return Ok(());
+            Event::Typed(c) => { self.game.char(char::to_ascii_uppercase(c)); }
+            Event::Key(Key::C, ButtonState::Pressed) => {
+                if self.ctrl {
+                    self.game.stop();
+                    return Ok(());
                 }
-                self.game.char(char::to_ascii_uppercase(c));
             }
             Event::Key(Key::Return, ButtonState::Pressed) => {
-                if self.ctrl { self.game.step(); return Ok(()); }
+                if self.ctrl {
+                    self.game.step();
+                    return Ok(());
+                }
                 self.game.char('\n')
             },
             Event::Key(Key::Space, ButtonState::Pressed) => { self.game.char(' ') },
@@ -109,6 +113,9 @@ impl State for Crabs {
 
 
                 self.mouse_down = true;
+            }
+            Event::Key(Key::LControl, ButtonState::Released) | Event::Key(Key::RControl, ButtonState::Released) => {
+                self.ctrl = false;
             }
             Event::MouseButton( MouseButton::Left, ButtonState::Released) => {
                 self.mouse_down = false;

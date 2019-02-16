@@ -138,11 +138,14 @@ impl Game {
             ORIGIN_X + self.crab.pos_x as f32 * TILE_X + self.crab.pos_y as f32 * OFFSET,
             ORIGIN_Y + self.crab.pos_y as f32 * TILE_Y,
         );
+        let crab_normal = self.crab.get_reg(Register::R);
         sprites.execute(|spr|{
             let crab = spr.get_img("crab").unwrap();
-            window.draw(
-                &crab.area().with_center(crabloc),
-                Img(&crab)
+            window.draw_ex(&
+                crab.area().with_center(crabloc),
+                Img(&crab),
+                Transform::scale(Vector::new(1, 1)) * Transform::rotate(90 * crab_normal),
+                2,
             );
             Ok(())
         })?;
