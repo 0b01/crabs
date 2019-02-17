@@ -49,16 +49,15 @@ impl State for Crabs {
         self.draw_ui(window)?;
         self.game.draw(window, &mut self.sprites)?;
 
-        let loc = (self.pos_x, self.pos_y);
-
-        self.sprites.execute(|spr|{
-            let anim_frame = spr.get_anim("crab-rest").unwrap().current_frame();
-            window.draw(
-                &anim_frame.area().with_center(loc),
-                Img(anim_frame)
-            );
-            Ok(())
-        })?;
+        // let loc = (self.pos_x, self.pos_y);
+        // self.sprites.execute(|spr|{
+        //     let anim_frame = spr.get_anim("crab-rest").unwrap().current_frame();
+        //     window.draw(
+        //         &anim_frame.area().with_center(loc),
+        //         Img(anim_frame)
+        //     );
+        //     Ok(())
+        // })?;
 
         Ok(())
     }

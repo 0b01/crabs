@@ -170,15 +170,16 @@ impl Game {
                 );
 
                 if *col {
-                    window.draw_ex(&
-                        Rectangle::new(
-                            crabloc,
-                            (10., 10.)
-                        ),
-                        Col(Color{r:0./255., g:0./255., b:255./255., a:255./255.}),
-                        Transform::scale(Vector::new(1., 1.)),
-                        1,
-                    );
+                    sprites.execute(|spr|{
+                        let crab = spr.get_anim("small").unwrap().current_frame();
+                        window.draw_ex(&
+                            crab.area().with_center(crabloc),
+                            Img(&crab),
+                            Transform::scale(Vector::new(1, 1)),//* Transform::rotate(90 * crab_normal),
+                            2,
+                        );
+                        Ok(())
+                    })?;
                 }
             }
         }

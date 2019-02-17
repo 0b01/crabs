@@ -11,7 +11,10 @@ pub struct Sprites {
 impl Sprites {
 
     pub fn new() -> impl Future<Item=Self, Error=Error> {
-        let srcs: Vec<&str> = vec!["crab", "pointer"];
+        let srcs: Vec<&str> = vec![
+            "crab",
+            "pointer"
+        ];
 
         let img_futs = srcs.into_iter().map(move |src| {
             load_file(src.to_owned() + ".png")
@@ -26,6 +29,7 @@ impl Sprites {
             ("crab-left",(36, 27, 1.)),
             ("crab-up",(36, 27, 1.)),
             ("crab-right",(36, 27, 1.)),
+            ("small",(36, 27, 0.7)),
         ];
 
         let anim_futs = anims.into_iter().map(move |(src, dims)| {
