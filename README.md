@@ -110,7 +110,7 @@ Rotate counterclockwise
 
 The first level can be solved using this code:
 
-    MOV 1 M
+    MOV -1 M
     L:
     JMP L
 
@@ -118,5 +118,5 @@ The first level can be solved using this code:
 
 Use `CTRL+RETURN` to step through your code.
 
-Press `ESC` or `CTRL+C` to stop.
+Press `ESC` or `CTRL+C` to stop debugger.
 

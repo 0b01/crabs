@@ -50,6 +50,7 @@ impl Game {
         ret.push(to_grid(include_str!("levels/2.txt")));
         ret.push(to_grid(include_str!("levels/1.txt")));
         ret.push(to_grid(include_str!("levels/test.txt")));
+        ret.push(to_grid(include_str!("levels/impossible.txt")));
 
         ret
     }

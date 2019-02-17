@@ -14,6 +14,7 @@ struct Crabs {
     pos_x: f32,
     pos_y: f32,
     ctrl: bool,
+    shift: bool,
 }
 
 impl State for Crabs {
@@ -28,6 +29,7 @@ impl State for Crabs {
             pos_x: 0.,
             pos_y: 0.,
             ctrl: false,
+            shift: false,
         })
     }
 
@@ -90,7 +92,13 @@ impl State for Crabs {
             Event::Key(Key::Space, ButtonState::Pressed) => { self.game.char(' ') },
             Event::Key(Key::Back, ButtonState::Pressed) => { self.game.char('\0') },
             Event::Key(Key::Colon, ButtonState::Pressed) => { self.game.char(':') },
-            Event::Key(Key::Subtract, ButtonState::Pressed) => { self.game.char('-') },
+            Event::Key(Key::Semicolon, ButtonState::Pressed) => {
+                if self.shift { self.game.char(':') }
+            },
+            Event::Key(Key::Minus, ButtonState::Pressed) | Event::Key(Key::Subtract, ButtonState::Pressed) => { self.game.char('-') },
+            Event::Key(Key::LShift, ButtonState::Pressed) | Event::Key(Key::RShift, ButtonState::Pressed) => {
+                self.shift = true;
+            },
             Event::Key(Key::LControl, ButtonState::Pressed) | Event::Key(Key::RControl, ButtonState::Pressed) => {
                 self.ctrl = true;
             },
@@ -176,5 +184,9 @@ impl Crabs {
 }
 
 fn main() {
-    run::<Crabs>("Crabs", Vector::new(WIDTH, HEIGHT), Settings::default());
+    run::<Crabs>("Crabs", Vector::new(WIDTH, HEIGHT), Settings {
+        resize: quicksilver::graphics::ResizeStrategy::Stretch,
+        fullscreen: true,
+        ..Default::default()
+    });
 }

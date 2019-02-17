@@ -316,13 +316,13 @@ impl FromStr for OpCode {
 
     fn from_str(line: &str) -> Result<Self, Self::Err> {
         let tokens: Vec<_> = line.split_whitespace().collect();
-        let code = tokens.get(0).unwrap();
+        let code = tokens.get(0).ok_or("does not exist".to_owned())?;
         let op1 = tokens.get(1).ok_or("does not exist".to_owned());
         let op2 = tokens.get(2).ok_or("does not exist".to_owned());
 
         match code {
             &"MOV" => {
-                if op1.clone().unwrap().chars().all(|i|i.is_digit(10) || i == '-') {
+                if op1.clone()?.chars().all(|i|i.is_digit(10) || i == '-') {
                     let op1 = op1?.parse().map_err(|_| "cannot parse int".to_owned())?;
                     let op2 = op2?.parse()?;
                     Ok(OpCode::MOVI(op1, op2))
@@ -333,7 +333,7 @@ impl FromStr for OpCode {
                 }
             }
             &"ADD" => {
-                if op1.clone().unwrap().chars().all(|i|i.is_digit(10) || i == '-') {
+                if op1.clone()?.chars().all(|i|i.is_digit(10) || i == '-') {
                     let op1 = op1?.parse().map_err(|_| "cannot parse int".to_owned())?;
                     let op2 = op2?.parse()?;
                     Ok(OpCode::ADDI(op1, op2))
@@ -344,7 +344,7 @@ impl FromStr for OpCode {
                 }
             }
             &"SUB" => {
-                if op1.clone().unwrap().chars().all(|i|i.is_digit(10) || i == '-') {
+                if op1.clone()?.chars().all(|i|i.is_digit(10) || i == '-') {
                     let op1 = op1?.parse().map_err(|_| "cannot parse int".to_owned())?;
                     let op2 = op2?.parse()?;
                     Ok(OpCode::SUBI(op1, op2))
@@ -362,7 +362,7 @@ impl FromStr for OpCode {
                 Ok(OpCode::NOP)
             }
             &"JRO" => {
-                if op1.clone().unwrap().chars().all(|i|i.is_digit(10) || i == '-') {
+                if op1.clone()?.chars().all(|i|i.is_digit(10) || i == '-') {
                     let op1 = op1?.parse().map_err(|_| "cannot parse int".to_owned())?;
                     Ok(OpCode::JROI(op1))
                 } else {
