@@ -269,6 +269,11 @@ impl Crab {
                 *dir = (*dir + 1) % 4;
                 self.ip += 1;
             }
+            RCC => {
+                let dir = self.registers.get_mut(&Register::R).unwrap();
+                *dir = (*dir + 3) % 4;
+                self.ip += 1;
+            }
         };
         Ok(())
     }
@@ -300,7 +305,10 @@ pub enum OpCode {
     JROI(i32),
     /// unconditional relative jump with value from register
     JRO(Register),
+    /// rotate clockwise
     RCW,
+    /// rotate counterclosewise
+    RCC,
 }
 
 impl FromStr for OpCode {
@@ -368,6 +376,7 @@ impl FromStr for OpCode {
             &"JGZ" => Ok(OpCode::JGZ(op1?.to_string())),
             &"JLZ" => Ok(OpCode::JLZ(op1?.to_string())),
             &"RCW" => Ok(OpCode::RCW),
+            &"RCC" => Ok(OpCode::RCC),
             _ => {
                 if code.starts_with("#") {
                     Ok(OpCode::COMMENT( line.to_string()) )
