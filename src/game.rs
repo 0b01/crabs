@@ -21,38 +21,64 @@ const REG_OFFSET: f32 = 20.;
 /// continuous stepping delay time in ms
 const PLAY_DELAY: f64 = 100.;
 
+const GRID_W: usize = 8;
+const GRID_H: usize = 6;
+
+type Grid = Vec<Vec<bool>>;
+
 pub struct Game {
     crab: Crab,
     buf: String,
     is_debugging: bool,
     is_playing: bool,
-    done: bool,
+    code_finished: bool,
     sleep: f64,
     error: Option<usize>,
+    current_grid: Grid,
+    current_level: usize,
+    levels: Vec<Grid>,
 }
 
 impl Game {
+    fn init_levels() -> Vec<Grid> {
+        let mut ret = vec![];
+
+        ret.push(to_grid(include_str!("levels/tutorial.txt")));
+        ret.push(to_grid(include_str!("levels/tutorial2.txt")));
+        ret.push(to_grid(include_str!("levels/tutorial3.txt")));
+        ret.push(to_grid(include_str!("levels/tutorial4.txt")));
+        ret.push(to_grid(include_str!("levels/2.txt")));
+        ret.push(to_grid(include_str!("levels/1.txt")));
+        ret.push(to_grid(include_str!("levels/test.txt")));
+
+        ret
+    }
+
     pub fn new() -> Self {
         let crab = Crab::new();
         let buf = CURSOR.to_string();
+        let levels = Game::init_levels();
         Self {
             crab,
             buf,
             is_debugging: false,
             is_playing: false,
-            done: false,
+            code_finished: false,
             sleep: 0.,
             error: None,
+            current_level: 0,
+            current_grid: levels[0].clone(),
+            levels,
         }
     }
 
-    pub fn update(&mut self, window: &mut Window) -> Result<()>  {
+    pub fn update(&mut self, window: &mut Window, sprites: &mut Asset<Sprites>) -> Result<()>  {
         let rate = window.update_rate();
         self.sleep -= rate;
-        if self.sleep < 0. && self.is_playing && !self.done {
-            self.step();
+        if self.sleep < 0. && self.is_playing && !self.code_finished {
+            self.step(sprites);
             self.sleep = PLAY_DELAY;
-            if self.done {
+            if self.code_finished {
                 self.is_playing = false;
             }
         }
@@ -111,10 +137,51 @@ impl Game {
 impl Game {
     pub fn draw(&self, window: &mut Window, sprites: &mut Asset<Sprites>) -> Result<()> {
         self.draw_crab(window, sprites)?;
+        self.draw_grid_items(window, sprites)?;
         self.draw_text(window, sprites)?;
         self.draw_registers(window, sprites)?;
         self.draw_debugger(window, sprites)?;
         self.draw_error(window, sprites)?;
+        self.draw_level(window, sprites)?;
+        Ok(())
+    }
+
+    fn draw_level(&self, window: &mut Window, sprites: &mut Asset<Sprites>) -> Result<()> {
+        sprites.execute(|spr|{
+            let img = spr.render_str(&format!("Level: {}/{}", self.current_level + 1, self.levels.len()));
+            window.draw_ex(&
+                img.area().with_center((448., 250.)),
+                Img(&img),
+                Transform::scale(Vector::new(0.1, 0.1)),
+                1,
+            );
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    fn draw_grid_items(&self, window: &mut Window, sprites: &mut Asset<Sprites>) -> Result<()> {
+        for (i, row) in self.current_grid.iter().enumerate() {
+            for (j, col) in row.iter().enumerate() {
+
+                let crabloc = (
+                    ORIGIN_X + j as f32 * TILE_X + i as f32 * OFFSET,
+                    ORIGIN_Y + i as f32 * TILE_Y,
+                );
+
+                if *col {
+                    window.draw_ex(&
+                        Rectangle::new(
+                            crabloc,
+                            (10., 10.)
+                        ),
+                        Col(Color{r:0./255., g:0./255., b:255./255., a:255./255.}),
+                        Transform::scale(Vector::new(1., 1.)),
+                        1,
+                    );
+                }
+            }
+        }
         Ok(())
     }
 
@@ -146,7 +213,7 @@ impl Game {
                 2,
             );
 
-            let col = if self.done {
+            let col = if self.code_finished {
                 Color{r:22./255., g:94./255., b:0./255., a:255./255.}
             } else {
                 Color{r:255./255., g:221./255., b:0./255., a:255./255.}
@@ -248,7 +315,30 @@ impl Game {
         }
     }
 
-    pub fn step(&mut self) {
+    fn objective_completed(&self) -> bool {
+        for i in &self.current_grid {
+            for j in i {
+                if *j { return false; }
+            }
+        }
+        return true;
+    }
+
+    fn next_level(&mut self, sprites: &mut Asset<Sprites>) {
+        self.code_finished = true;
+        self.current_level += 1;
+        self.current_grid = self.levels[self.current_level].clone();
+        self.stop();
+        sprites.execute(|i| {
+            i.get_sound("success").unwrap().play()?;
+            Ok(())
+        }).unwrap();
+    }
+
+    pub fn step(&mut self, sprites: &mut Asset<Sprites>) {
+        if self.objective_completed() {
+            self.next_level(sprites);
+        }
         if !self.is_debugging {
             self.is_debugging = true;
             self.load_code();
@@ -257,9 +347,13 @@ impl Game {
         if self.error.is_some()  {
             return;
         }
-        self.crab.motor();
         if let Err(_) = self.crab.step() {
-            self.done = true;
+            self.code_finished = true;
+        }
+        let i = self.crab.pos_y as usize;
+        let j = self.crab.pos_x as usize;
+        if let Some(Some(pos)) = self.current_grid.get_mut(i).map(|row|row.get_mut(j)) {
+            *pos = false;
         }
         self.crab.sensor();
     }
@@ -268,12 +362,25 @@ impl Game {
         self.is_debugging = false;
         self.is_playing = false;
         self.crab.reset();
+        self.current_grid = self.levels[self.current_level].clone();
         self.error = None;
-        self.done = true;
+        self.code_finished = true;
     }
 
     pub fn play(&mut self) {
         self.is_playing = true;
-        self.done = false;
+        self.code_finished = false;
     }
+}
+
+fn to_grid(file: &str) -> Grid {
+    let mut grid = vec![];
+    for line in file.lines().take(GRID_H) {
+        let mut temp = vec![];
+        for ch in line.chars().take(GRID_W) {
+            temp.push(ch=='x');
+        }
+        grid.push(temp);
+    }
+    grid
 }

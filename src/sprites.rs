@@ -21,7 +21,7 @@ impl Sprites {
         });
 
         let anims: Vec<(&str, _)> = vec![
-            ("bg", (480, 270, 10.)),
+            ("bg", (480, 270, 20.)),
             ("crab-rest",(36, 27, 1.)),
             ("crab-left",(36, 27, 1.)),
             ("crab-up",(36, 27, 1.)),
@@ -45,7 +45,8 @@ impl Sprites {
                 anims
             });
 
-        let sounds: Vec<&str> = vec![];
+        let sounds: Vec<&str> = vec!["click", "success", "switch"];
+
 
         let sound_futs = sounds.into_iter()
             .map(|s|

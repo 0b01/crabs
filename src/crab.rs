@@ -34,19 +34,12 @@ impl Crab {
 
     pub fn load_code(&mut self, code: &str) -> Result<(), usize> {
         let lines: Vec<_> = code.lines()
-            .filter_map(|line|{
-                let trimmed = line.trim();
-                if !trimmed.is_empty() {
-                    Some(trimmed)
-                } else {
-                    None
-                }
-            })
-            .map(|i|i.parse::<OpCode>().ok())
+            .map(|line|line.trim().parse::<OpCode>().ok())
             .collect();
         if !lines.iter().all(|i|i.is_some()) {
             return Err(lines.iter().position(|i|i.is_none()).unwrap());
         }
+
         let lines = lines.into_iter().map(|i|i.unwrap()).collect();
         self.code = lines;
         Ok(())
@@ -148,6 +141,13 @@ impl Crab {
         dbg!(&self.code[self.ip]);
 
         let op = self.code[self.ip].clone();
+
+        match &op {
+            LABEL(_) => (),
+            COMMENT(_) => (),
+            _ => self.motor(),
+        };
+
         use self::OpCode::*;
         match op {
             NOP => {
@@ -155,6 +155,7 @@ impl Crab {
             },
             LABEL(lbl) => {
                 self.ip += 1;
+                return Ok(());
             },
             COMMENT(_) => {
                 self.ip += 1;
@@ -207,6 +208,7 @@ impl Crab {
             }
             JMP(lbl) => {
                 let loc = self.find_label(&lbl).ok_or(format!("Cannot find label. {}", lbl))?;
+                dbg!(loc);
                 self.ip = loc;
             }
             JEZ(lbl) => {

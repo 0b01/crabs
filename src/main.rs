@@ -40,7 +40,7 @@ impl State for Crabs {
             }
             Ok(())
         })?;
-        self.game.update(window)?;
+        self.game.update(window, &mut self.sprites)?;
         Ok(())
     }
 
@@ -82,11 +82,12 @@ impl State for Crabs {
             }
             Event::Key(Key::Return, ButtonState::Pressed) => {
                 if self.ctrl {
-                    self.game.step();
+                    self.game.step(&mut self.sprites);
                     return Ok(());
                 }
                 self.game.char('\n')
             },
+            Event::Key(Key::Escape, ButtonState::Pressed) => { self.game.stop() },
             Event::Key(Key::Space, ButtonState::Pressed) => { self.game.char(' ') },
             Event::Key(Key::Back, ButtonState::Pressed) => { self.game.char('\0') },
             Event::Key(Key::Colon, ButtonState::Pressed) => { self.game.char(':') },
@@ -101,15 +102,26 @@ impl State for Crabs {
                 let Vector {x, y} = window.mouse().pos();
 
 
+                macro_rules! click_sound {
+                    () => {
+                        self.sprites.execute(|i| {
+                            i.get_sound("click").unwrap().play()?;
+                            Ok(())
+                        })?;
+                    }
+                }
 
                 if x> 21.502869 && x< 30.15857 && y> 8.043931 && y< 18.273455 {
+                    click_sound!();
                     // play
                     self.game.play();
                 }
                 if x > 46.226604 && x < 58.34049 && y > 7.6740127 && y < 19.53377 {
-                    self.game.step();
+                    click_sound!();
+                    self.game.step(&mut self.sprites);
                 }
                 if x > 74.01056 && x < 83.92191 && y > 7.001367 && y < 18.945835 {
+                    click_sound!();
                     self.game.stop();
                 }
 
