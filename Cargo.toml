@@ -5,4 +5,4 @@ authors = ["ricky han <github@rickyhan.com>"]
 edition = "2018"
 
 [dependencies]
-quicksilver = version = "0.3.7"
+quicksilver = "0.3.7"

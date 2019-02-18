@@ -1,9 +1,16 @@
+#[allow(pub_use_of_private_extern_crate)]
+
 extern crate quicksilver;
 mod prelude;
 mod anim;
 mod game;
 mod crab;
 mod sprites;
+
+#[cfg(target_arch="wasm32")]
+const MULT: f32 =  5.;
+#[cfg(not(target_arch="wasm32"))]
+const MULT: f32 =  1.;
 
 use crate::prelude::*;
 
@@ -34,6 +41,9 @@ impl State for Crabs {
     }
 
     fn update(&mut self, window: &mut Window) -> Result<()> {
+        if cfg!(target_arch = "wasm32") {
+            window.set_size((WIDTH*MULT, HEIGHT*MULT));
+        }
         self.sprites.execute(|spr| {
             spr.update_anim(window)?;
             let bg = spr.get_anim_mut("bg").unwrap();
@@ -106,6 +116,10 @@ impl State for Crabs {
 
             Event::MouseButton( MouseButton::Left, ButtonState::Pressed) => {
                 dbg!(&window.mouse().pos());
+                // js!(
+                //     // format!("{:#?}", &window.mouse().pos())
+                //     console.log(1);
+                // );
                 let Vector {x, y} = window.mouse().pos();
 
 
@@ -118,16 +132,16 @@ impl State for Crabs {
                     }
                 }
 
-                if x> 21.502869 && x< 30.15857 && y> 8.043931 && y< 18.273455 {
+                if x> 21.502869*MULT && x< 30.15857*MULT && y> 8.043931*MULT && y< 18.273455*MULT {
                     click_sound!();
                     // play
                     self.game.play();
                 }
-                if x > 46.226604 && x < 58.34049 && y > 7.6740127 && y < 19.53377 {
+                if x > 46.226604*MULT && x < 58.34049*MULT && y > 7.6740127*MULT && y < 19.53377*MULT {
                     click_sound!();
                     self.game.step(&mut self.sprites);
                 }
-                if x > 74.01056 && x < 83.92191 && y > 7.001367 && y < 18.945835 {
+                if x > 74.01056*MULT && x < 83.92191*MULT && y > 7.001367*MULT && y < 18.945835*MULT {
                     click_sound!();
                     self.game.stop();
                 }
@@ -185,8 +199,8 @@ impl Crabs {
 
 fn main() {
     run::<Crabs>("Crabs", Vector::new(WIDTH, HEIGHT), Settings {
-        resize: quicksilver::graphics::ResizeStrategy::Stretch,
-        fullscreen: true,
+        resize: quicksilver::graphics::ResizeStrategy::Fit,
+        fullscreen: false,
         ..Default::default()
     });
 }
